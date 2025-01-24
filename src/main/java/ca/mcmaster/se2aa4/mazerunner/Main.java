@@ -22,6 +22,7 @@ public class Main {
         System.out.println("** Starting Maze Runner");
         Options options = new Options();
         options.addOption("i", true, "Path to file containing maze");
+        options.addOption("p", true, "Input path to check for legitimacy");
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine cmd = parser.parse(options, args);
@@ -45,6 +46,9 @@ public class Main {
             }
             else {
                 logger.error("Wrong format, please use '-i'");
+            }
+            if(cmd.hasOption("p")) {
+                String path = cmd.getOptionValue("p");
             }
         } catch(Exception e) {
             logger.error("An error has occured");
@@ -76,6 +80,7 @@ class Maze {
             rows++;
         }
         mazegrid = new char[rows][columns];
+        bufferedreader.close();
 
         FileReader filereader2 = new FileReader(inputfile);
         BufferedReader bufferedreader2 = new BufferedReader(filereader2);
@@ -86,6 +91,7 @@ class Maze {
             }
             x++;
         }
+        bufferedreader2.close();
     }
 
     public int getRows() {
@@ -108,5 +114,36 @@ class Maze {
             System.out.println();
         }
     }
+}
+class NavigateMaze {
+    private int entryPoint;
+    private int exitPoint;
+    private Maze maze;
+
+    public NavigateMaze(String inputfile) throws IOException {
+        this.maze = new Maze(inputfile);
+        this.entryPoint = findEntry(maze.getMazegrid());
+        this.exitPoint = findExit(maze.getMazegrid());
+    }
+
+
+    private int findEntry(char[][] mazegrid) {
+        for(int x = 0; x < maze.getRows(); x++) {
+            if(mazegrid[x][0] == ' ') {
+                return x;
+            }
+        }
+        return -1;
+    }
+
+    private int findExit(char[][] mazegrid) {
+        for(int x = 0; x < maze.getRows(); x++) {
+            if(mazegrid[x][maze.getColumns() - 1] == ' ') {
+                return x;
+            }
+        }
+        return -1;
+    }
+
 }
 
