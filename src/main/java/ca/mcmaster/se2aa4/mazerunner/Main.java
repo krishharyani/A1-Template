@@ -42,13 +42,18 @@ public class Main {
                     }
                     logger.info(System.lineSeparator());
                 }
-            
+                
+                if(cmd.hasOption("p")) {
+                    String path = cmd.getOptionValue("p");
+                    NavigateMaze navigate = new NavigateMaze(inputfile, path);
+                    boolean isValid = navigate.PathValidate(path);
+                }
+                else {
+                    NavigateMaze navigate = new NavigateMaze(inputfile);
+                }
             }
             else {
                 logger.error("Wrong format, please use '-i'");
-            }
-            if(cmd.hasOption("p")) {
-                String path = cmd.getOptionValue("p");
             }
         } catch(Exception e) {
             logger.error("An error has occured");
@@ -119,11 +124,19 @@ class NavigateMaze {
     private int entryPoint;
     private int exitPoint;
     private Maze maze;
+    private String path;
 
     public NavigateMaze(String inputfile) throws IOException {
         this.maze = new Maze(inputfile);
         this.entryPoint = findEntry(maze.getMazegrid());
         this.exitPoint = findExit(maze.getMazegrid());
+    }
+
+    public NavigateMaze(String inputfile, String path) throws IOException {
+        this.maze = new Maze(inputfile);
+        this.entryPoint = findEntry(maze.getMazegrid());
+        this.exitPoint = findExit(maze.getMazegrid());
+        this.path = path;
     }
 
 
@@ -145,5 +158,49 @@ class NavigateMaze {
         return -1;
     }
 
+    public boolean PathValidate(String path) {
+        int row = findEntry(maze.getMazegrid());
+        int col = 0;
+        int finalRow = findExit(maze.getMazegrid());
+        int finalCol = maze.getColumns() - 1;
+        int direction = 1; // 0 = North | 1 = East | 2 = South | 3 = West
+        char [][] tempMazegrid = maze.getMazegrid();
+        for (char step : path.toCharArray()) {
+            if (step == 'L') {
+                direction = (direction + 3) % 4;
+            }
+            else if (step == 'R') {
+                direction = (direction + 1) % 4;
+            }
+            else if (step == 'F') {
+                if (direction == 0) {
+                    row--;
+                }
+                else if (direction == 1) {
+                    col++;
+                }
+                else if (direction == 2) {
+                    row++;
+                }
+                else if (direction == 3) {
+                    col--;
+                }
+
+                if (row < 0 || col < 0 || tempMazegrid[row][col] == '#') {
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+
+        }
+        if ((col == finalCol) && (row == finalRow)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
 
