@@ -28,15 +28,14 @@ public class Main {
             CommandLine cmd = parser.parse(options, args);
             if (cmd.hasOption("i")) {
                 String inputfile = cmd.getOptionValue("i");
-                logger.info("**** Reading the maze from file ", inputfile);
-    
+                logger.info("**** Reading the maze from file " + inputfile);
                 BufferedReader reader = new BufferedReader(new FileReader(inputfile));
                 String line;
                 while ((line = reader.readLine()) != null) {
                     for (int idx = 0; idx < line.length(); idx++) {
                         if (line.charAt(idx) == '#') {
                             logger.info("WALL ");
-                        } else if (line.charAt(idx) == ' ') {
+                        } else if (line.charAt(idx) != '#') {
                             logger.info("PASS ");
                         }
                     }
@@ -47,9 +46,17 @@ public class Main {
                     String path = cmd.getOptionValue("p");
                     NavigateMaze navigate = new NavigateMaze(inputfile, path);
                     boolean isValid = navigate.PathValidate(path);
+                    if (isValid) {
+                        logger.info("Correct Path");
+                    }
+                    else {
+                        logger.info("Incorrect Path");
+                    }
                 }
                 else {
                     NavigateMaze navigate = new NavigateMaze(inputfile);
+                    String path1 = navigate.PathCompute();
+                    logger.info(path1);
                 }
             }
             else {
@@ -125,6 +132,8 @@ class NavigateMaze {
     private int exitPoint;
     private Maze maze;
     private String path;
+    private static final Logger logger = LogManager.getLogger();
+
 
     public NavigateMaze(String inputfile) throws IOException {
         this.maze = new Maze(inputfile);
@@ -142,7 +151,7 @@ class NavigateMaze {
 
     private int findEntry(char[][] mazegrid) {
         for(int x = 0; x < maze.getRows(); x++) {
-            if(mazegrid[x][0] == ' ') {
+            if(mazegrid[x][0] != '#') {
                 return x;
             }
         }
@@ -151,7 +160,7 @@ class NavigateMaze {
 
     private int findExit(char[][] mazegrid) {
         for(int x = 0; x < maze.getRows(); x++) {
-            if(mazegrid[x][maze.getColumns() - 1] == ' ') {
+            if(mazegrid[x][maze.getColumns() - 1] != '#') {
                 return x;
             }
         }
@@ -195,12 +204,46 @@ class NavigateMaze {
             }
 
         }
-        if ((col == finalCol) && (row == finalRow)) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return col == finalCol;
     }
+
+    public String PathCompute() {
+        char [][] tempMazegrid = maze.getMazegrid();
+        int row = findEntry(maze.getMazegrid());
+        int col = 0;
+        int finalRow = findExit(maze.getMazegrid());
+        int finalCol = maze.getColumns() - 1;
+        int direction = 1; // 0 = North | 1 = East | 2 = South | 3 = West
+        StringBuilder path = new StringBuilder();
+        int [][] moveset = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}}; // moves forward based on orientation North, East, South, West respectively
+        while ((col != finalCol)) {
+            int rightSide = (direction + 1) % 4;
+            int rightSideRow = row + moveset[rightSide][0];
+            int rightSideCol = col + moveset[rightSide][1];
+            if (tempMazegrid[rightSideRow][rightSideCol] != '#') {
+                direction = rightSide;
+                path.append("R");
+                row = rightSideRow;
+                col = rightSideCol;
+                path.append("F");
+            }
+            else {
+                int adjacentRow = row + moveset[direction][0];
+                int adjacentCol = col + moveset[direction][1];
+
+                if (tempMazegrid[adjacentRow][adjacentCol] != '#') {
+                    row = adjacentRow;
+                    col = adjacentCol;
+                    path.append("F");
+                }
+                else {
+                    direction = (direction + 3) % 4;
+                    path.append("L");
+                }
+            }
+        }
+        return path.toString();
+    }
+
 }
 
