@@ -113,7 +113,6 @@ class Maze {
 class NavigateMaze {
     private Maze maze;
     String path;
-    private static final Logger logger = LogManager.getLogger();
 
     public NavigateMaze(String inputfile) throws IOException {
         this.maze = new Maze(inputfile);
@@ -228,6 +227,7 @@ class NavigateMaze {
 }
 
 class formChanger {
+    private static final Logger logger = LogManager.getLogger();
     public String canonicalToFactored(String canonicalPath) {
         StringBuilder factoredPath = new StringBuilder();
         String canonical = canonicalPath;
@@ -253,6 +253,9 @@ class formChanger {
         StringBuilder canonicalPath = new StringBuilder();
         int count = 1;
         for (int i = 0; i < factoredPath.length(); i++) {
+            if (factoredPath.charAt(i) == ' ') {
+                continue;
+            }
             if (Character.isDigit(factoredPath.charAt(i))) {
                 count = Character.getNumericValue(factoredPath.charAt(i));
             }
