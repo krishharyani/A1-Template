@@ -19,7 +19,6 @@ public class Main {
     private static final Logger logger = LogManager.getLogger();
 
     public static void main(String[] args) {
-        System.out.println("** Starting Maze Runner");
         Options options = new Options();
         options.addOption("i", true, "Path to file containing maze");
         options.addOption("p", true, "Input path to check for legitimacy");
