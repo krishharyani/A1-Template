@@ -28,20 +28,6 @@ public class Main {
             CommandLine cmd = parser.parse(options, args);
             if (cmd.hasOption("i")) {
                 String inputfile = cmd.getOptionValue("i");
-                logger.info("**** Reading the maze from file " + inputfile);
-                BufferedReader reader = new BufferedReader(new FileReader(inputfile));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    for (int idx = 0; idx < line.length(); idx++) {
-                        if (line.charAt(idx) == '#') {
-                            logger.info("WALL ");
-                        } else if (line.charAt(idx) != '#') {
-                            logger.info("PASS ");
-                        }
-                    }
-                    logger.info(System.lineSeparator());
-                }
-                
                 if(cmd.hasOption("p")) {
                     String path = cmd.getOptionValue("p");
                     NavigateMaze navigate = new NavigateMaze(inputfile, path);
@@ -65,9 +51,6 @@ public class Main {
         } catch(Exception e) {
             logger.error("An error has occured");
         }
-        logger.info("**** Computing path");
-        logger.info("PATH NOT COMPUTED");
-        logger.info("** End of MazeRunner");
     }
 }
 
@@ -128,23 +111,16 @@ class Maze {
     }
 }
 class NavigateMaze {
-    private int entryPoint;
-    private int exitPoint;
     private Maze maze;
-    private String path;
+    String path;
     private static final Logger logger = LogManager.getLogger();
-
 
     public NavigateMaze(String inputfile) throws IOException {
         this.maze = new Maze(inputfile);
-        this.entryPoint = findEntry(maze.getMazegrid());
-        this.exitPoint = findExit(maze.getMazegrid());
     }
 
     public NavigateMaze(String inputfile, String path) throws IOException {
         this.maze = new Maze(inputfile);
-        this.entryPoint = findEntry(maze.getMazegrid());
-        this.exitPoint = findExit(maze.getMazegrid());
         this.path = path;
     }
 
@@ -168,13 +144,15 @@ class NavigateMaze {
     }
 
     public boolean PathValidate(String path) {
+        formChanger changeForm =  new formChanger();
+        String canonicalPath = changeForm.factoredToCanonical(path);
         int row = findEntry(maze.getMazegrid());
         int col = 0;
         int finalRow = findExit(maze.getMazegrid());
         int finalCol = maze.getColumns() - 1;
         int direction = 1; // 0 = North | 1 = East | 2 = South | 3 = West
         char [][] tempMazegrid = maze.getMazegrid();
-        for (char step : path.toCharArray()) {
+        for (char step : canonicalPath.toCharArray()) {
             if (step == 'L') {
                 direction = (direction + 3) % 4;
             }
@@ -195,7 +173,7 @@ class NavigateMaze {
                     col--;
                 }
 
-                if (row < 0 || col < 0 || tempMazegrid[row][col] == '#') {
+                if (row > finalRow || col > finalCol || row < 0 || col < 0 || tempMazegrid[row][col] == '#') {
                     return false;
                 }
             }
@@ -242,8 +220,49 @@ class NavigateMaze {
                 }
             }
         }
-        return path.toString();
+        formChanger changeForm = new formChanger();
+        String factoredFrom = changeForm.canonicalToFactored(path.toString());
+        return factoredFrom;
     }
 
 }
 
+class formChanger {
+    public String canonicalToFactored(String canonicalPath) {
+        StringBuilder factoredPath = new StringBuilder();
+        String canonical = canonicalPath;
+        canonical = canonical + " ";
+        int count = 1;
+        for(int i = 1; i < canonicalPath.length() + 1; i++) {
+            if (canonical.charAt(i) == canonical.charAt(i-1)) {
+                count++;
+            }
+            else {
+                if (count == 1) {
+                    factoredPath.append(canonical.charAt(i-1)).append(" ");
+                }
+                else {
+                    factoredPath.append(count).append(canonical.charAt(i-1)).append(" ");
+                    count = 1;
+                }
+            }
+        }
+        return factoredPath.toString();
+    }
+    public String factoredToCanonical(String factoredPath) {
+        StringBuilder canonicalPath = new StringBuilder();
+        int count = 1;
+        for (int i = 0; i < factoredPath.length(); i++) {
+            if (Character.isDigit(factoredPath.charAt(i))) {
+                count = Character.getNumericValue(factoredPath.charAt(i));
+            }
+            else {
+                for (int j = 0; j < count; j++) {
+                    canonicalPath.append(factoredPath.charAt(i));
+                }
+                count = 1;
+            }
+        }
+        return canonicalPath.toString();
+    }
+}
