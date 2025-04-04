@@ -123,7 +123,7 @@ class NavigateMaze {
     }
 
 
-    private int findEntry(char[][] mazegrid) {
+    public int findEntry(char[][] mazegrid) {
         for(int x = 0; x < maze.getRows(); x++) {
             if(mazegrid[x][0] != '#') {
                 return x;
@@ -132,7 +132,7 @@ class NavigateMaze {
         return -1;
     }
 
-    private int findExit(char[][] mazegrid) {
+    public int findExit(char[][] mazegrid) {
         for(int x = 0; x < maze.getRows(); x++) {
             if(mazegrid[x][maze.getColumns() - 1] != '#') {
                 return x;
