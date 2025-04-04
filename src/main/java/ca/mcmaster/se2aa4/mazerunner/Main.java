@@ -55,12 +55,20 @@ public class Main {
 
 
 class Maze {
+    private static Maze instance;
     private char[][] mazegrid;
     private int rows = 0;
     private int columns = 0;
 
-    public Maze(String inputfile) throws IOException {
+    private Maze(String inputfile) throws IOException {
         initializeMaze(inputfile);
+    }
+
+    public static Maze getInstance(String inputfile) throws IOException {
+        if (instance == null) {
+            instance = new Maze(inputfile);
+        }
+        return instance;
     }
 
     private void initializeMaze(String inputfile) throws IOException {
@@ -86,6 +94,10 @@ class Maze {
             x++;
         }
         bufferedreader2.close();
+    }
+    
+    public static void reset() {
+        instance = null;
     }
 
     public int getRows() {
@@ -114,11 +126,11 @@ class NavigateMaze {
     String path;
 
     public NavigateMaze(String inputfile) throws IOException {
-        this.maze = new Maze(inputfile);
+        this.maze = Maze.getInstance(inputfile);
     }
 
     public NavigateMaze(String inputfile, String path) throws IOException {
-        this.maze = new Maze(inputfile);
+        this.maze = Maze.getInstance(inputfile);
         this.path = path;
     }
 
@@ -140,6 +152,7 @@ class NavigateMaze {
         }
         return -1;
     }
+
 
     public boolean PathValidate(String path) {
         formChanger changeForm =  new formChanger();

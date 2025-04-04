@@ -9,14 +9,16 @@ public class navigateMazeTest {
 
     @Test
     void testEntryAndExit () throws IOException {
+        Maze.reset();
         NavigateMaze navigate = new NavigateMaze("examples/rectangle.maz.txt");
-        Maze maze = new Maze("examples/rectangle.maz.txt");
+        Maze maze = Maze.getInstance("examples/rectangle.maz.txt");
         assertEquals(12, navigate.findEntry(maze.getMazegrid()));
         assertEquals(10, navigate.findExit(maze.getMazegrid()));
     }
 
     @Test
     void testPathValidate () throws IOException {
+        Maze.reset();
         NavigateMaze navigate = new NavigateMaze("examples/straight.maz.txt", "4F");
         assertTrue(navigate.PathValidate("4F"));
     }
