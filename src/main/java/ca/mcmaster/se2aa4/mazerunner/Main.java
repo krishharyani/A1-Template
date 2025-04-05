@@ -95,7 +95,7 @@ class Maze {
         }
         bufferedreader2.close();
     }
-    
+
     public static void reset() {
         instance = null;
     }
@@ -121,12 +121,75 @@ class Maze {
         }
     }
 }
+
+interface PathFindingStrategy {
+    String PathCompute(Maze maze);
+}
+class MazeEntryExit {
+    public static int findEntry(char[][] mazegrid) {
+        for (int x = 0; x < mazegrid.length; x++) {
+            if (mazegrid[x][0] != '#') return x;
+        }
+        return -1;
+    }
+
+    public static int findExit(char[][] mazegrid) {
+        for (int x = 0; x < mazegrid.length; x++) {
+            if (mazegrid[x][mazegrid[0].length - 1] != '#') return x;
+        }
+        return -1;
+    }
+}
+
+class RightHandStrategy implements PathFindingStrategy {
+    public String PathCompute(Maze maze) {
+        char [][] tempMazegrid = maze.getMazegrid();
+        int row = MazeEntryExit.findEntry(maze.getMazegrid());
+        int col = 0;
+        int finalRow = MazeEntryExit.findExit(maze.getMazegrid());
+        int finalCol = maze.getColumns() - 1;
+        int direction = 1; // 0 = North | 1 = East | 2 = South | 3 = West
+        StringBuilder path = new StringBuilder();
+        int [][] moveset = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}}; // moves forward based on orientation North, East, South, West respectively
+        while ((col != finalCol)) {
+            int rightSide = (direction + 1) % 4;
+            int rightSideRow = row + moveset[rightSide][0];
+            int rightSideCol = col + moveset[rightSide][1];
+            if (tempMazegrid[rightSideRow][rightSideCol] != '#') {
+                direction = rightSide;
+                path.append("R");
+                row = rightSideRow;
+                col = rightSideCol;
+                path.append("F");
+            }
+            else {
+                int adjacentRow = row + moveset[direction][0];
+                int adjacentCol = col + moveset[direction][1];
+
+                if (tempMazegrid[adjacentRow][adjacentCol] != '#') {
+                    row = adjacentRow;
+                    col = adjacentCol;
+                    path.append("F");
+                }
+                else {
+                    direction = (direction + 3) % 4;
+                    path.append("L");
+                }
+            }
+        }
+        formChanger changeForm = new formChanger();
+        String factoredFrom = changeForm.canonicalToFactored(path.toString());
+        return factoredFrom;
+    }
+}
 class NavigateMaze {
     private Maze maze;
     String path;
+    private PathFindingStrategy strategy;
 
     public NavigateMaze(String inputfile) throws IOException {
         this.maze = Maze.getInstance(inputfile);
+        this.strategy = new RightHandStrategy();
     }
 
     public NavigateMaze(String inputfile, String path) throws IOException {
@@ -134,6 +197,9 @@ class NavigateMaze {
         this.path = path;
     }
 
+    public void setStrategy(PathFindingStrategy strategy) {
+        this.strategy = strategy;
+    }
 
     public int findEntry(char[][] mazegrid) {
         for(int x = 0; x < maze.getRows(); x++) {
@@ -197,43 +263,10 @@ class NavigateMaze {
     }
 
     public String PathCompute() {
-        char [][] tempMazegrid = maze.getMazegrid();
-        int row = findEntry(maze.getMazegrid());
-        int col = 0;
-        int finalRow = findExit(maze.getMazegrid());
-        int finalCol = maze.getColumns() - 1;
-        int direction = 1; // 0 = North | 1 = East | 2 = South | 3 = West
-        StringBuilder path = new StringBuilder();
-        int [][] moveset = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}}; // moves forward based on orientation North, East, South, West respectively
-        while ((col != finalCol)) {
-            int rightSide = (direction + 1) % 4;
-            int rightSideRow = row + moveset[rightSide][0];
-            int rightSideCol = col + moveset[rightSide][1];
-            if (tempMazegrid[rightSideRow][rightSideCol] != '#') {
-                direction = rightSide;
-                path.append("R");
-                row = rightSideRow;
-                col = rightSideCol;
-                path.append("F");
-            }
-            else {
-                int adjacentRow = row + moveset[direction][0];
-                int adjacentCol = col + moveset[direction][1];
-
-                if (tempMazegrid[adjacentRow][adjacentCol] != '#') {
-                    row = adjacentRow;
-                    col = adjacentCol;
-                    path.append("F");
-                }
-                else {
-                    direction = (direction + 3) % 4;
-                    path.append("L");
-                }
-            }
+        if (strategy == null) {
+            strategy = new RightHandStrategy();
         }
-        formChanger changeForm = new formChanger();
-        String factoredFrom = changeForm.canonicalToFactored(path.toString());
-        return factoredFrom;
+        return strategy.PathCompute(maze);
     }
 
 }
